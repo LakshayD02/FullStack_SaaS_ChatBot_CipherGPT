@@ -1,5 +1,5 @@
 # FullStack_SaaS_ChatBot_CipherGPT
- CipherGPT is an advanced SAAS chatbot AI meticulously crafted using the MERN (MongoDB, Express.js, React.js, Node.js) stack coupled with TypeScript and the OpenAI API.
+ CipherGPT is an advanced SAAS chatbot AI meticulously crafted using the MERN (MongoDB, Express.js, React.js, Node.js) stack coupled with TypeScript and the OpenAI API. It is a powerful full-stack SaaS chatbot AI that leverages the cutting-edge OpenAI API to understand and respond to user queries in an informative and comprehensive manner, similar to ChatGPT and other leading AI tools
 
 # Key Features:
 
