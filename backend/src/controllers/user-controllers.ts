@@ -1,9 +1,9 @@
 import { NextFunction, Request, Response } from "express";
-import User from "../models/User.js";
+import User from "../models/User";
 import { hash, compare } from "bcrypt";
-import { createToken } from "../utils/token-manager.js";
-import { COOKIE_NAME } from "../utils/constants.js";
-import { sendMail } from "../utils/mail-sender.js";
+import { createToken } from "../utils/token-manager";
+import { COOKIE_NAME } from "../utils/constants";
+import { sendMail } from "../utils/mail-sender";
 
 export const getAllUsers = async (
   req: Request,

@@ -8,13 +8,13 @@ import {
   updateProfile,
   sendOTP,
   resetPasswordWithOTP,
-} from "../controllers/user-controllers.js";
+} from "../controllers/user-controllers";
 import {
   loginValidator,
   signupValidator,
   validate,
-} from "../utils/validators.js";
-import { verifyToken } from "../utils/token-manager.js";
+} from "../utils/validators";
+import { verifyToken } from "../utils/token-manager";
 
 const userRoutes = Router();
 

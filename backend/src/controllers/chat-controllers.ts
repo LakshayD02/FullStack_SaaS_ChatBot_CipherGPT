@@ -1,6 +1,6 @@
 import { NextFunction, Request, Response } from "express";
-import User from "../models/User.js";
-import { configureOpenAI } from "../config/openai-config.js";
+import User from "../models/User";
+import { configureOpenAI } from "../config/openai-config";
 import OpenAI from "openai";
 import { randomUUID } from "crypto";
 

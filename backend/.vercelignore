@@ -1,0 +1,3 @@
+# Don't ignore dist — Vercel needs the compiled output
+# node_modules is already ignored by Vercel automatically
+.env
