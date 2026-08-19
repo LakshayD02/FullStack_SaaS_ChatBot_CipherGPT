@@ -15,6 +15,20 @@ export const verifyToken = async (
   res: Response,
   next: NextFunction
 ) => {
+  // 1. Try Authorization Bearer header first (works cross-origin)
+  const authHeader = req.headers.authorization;
+  if (authHeader && authHeader.startsWith("Bearer ")) {
+    const token = authHeader.slice(7);
+    return jwt.verify(token, process.env.JWT_SECRET, (err, success) => {
+      if (err) {
+        return res.status(401).json({ message: "Token Expired" });
+      }
+      res.locals.jwtData = success;
+      return next();
+    });
+  }
+
+  // 2. Fallback: signed cookie (local dev)
   const token = req.signedCookies[`${COOKIE_NAME}`];
   if (!token || token.trim() === "") {
     return res.status(401).json({ message: "Token Not Received" });

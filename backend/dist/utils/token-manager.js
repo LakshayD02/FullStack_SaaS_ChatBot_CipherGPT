@@ -15,6 +15,19 @@ const createToken = (id, email, expiresIn) => {
 };
 exports.createToken = createToken;
 const verifyToken = async (req, res, next) => {
+    // 1. Try Authorization Bearer header first (works cross-origin)
+    const authHeader = req.headers.authorization;
+    if (authHeader && authHeader.startsWith("Bearer ")) {
+        const token = authHeader.slice(7);
+        return jsonwebtoken_1.default.verify(token, process.env.JWT_SECRET, (err, success) => {
+            if (err) {
+                return res.status(401).json({ message: "Token Expired" });
+            }
+            res.locals.jwtData = success;
+            return next();
+        });
+    }
+    // 2. Fallback: signed cookie (local dev)
     const token = req.signedCookies[`${constants_1.COOKIE_NAME}`];
     if (!token || token.trim() === "") {
         return res.status(401).json({ message: "Token Not Received" });

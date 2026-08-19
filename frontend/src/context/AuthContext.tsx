@@ -31,7 +31,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
 
   useEffect(() => {
-    // fetch if the user's cookies are valid then skip login
+    // Restore JWT from localStorage and verify with backend
     async function checkStatus() {
       const data = await checkAuthStatus();
       if (data) {

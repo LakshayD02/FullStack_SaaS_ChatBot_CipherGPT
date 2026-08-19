@@ -1,10 +1,34 @@
 import axios from "axios";
 
+const TOKEN_KEY = "ciphergpt_token";
+
+// Save token to localStorage and set default axios header
+export const setAuthToken = (token: string) => {
+  localStorage.setItem(TOKEN_KEY, token);
+  axios.defaults.headers.common["Authorization"] = `Bearer ${token}`;
+};
+
+// Clear token from localStorage and axios headers
+export const clearAuthToken = () => {
+  localStorage.removeItem(TOKEN_KEY);
+  delete axios.defaults.headers.common["Authorization"];
+};
+
+// Restore token from localStorage on page load
+export const restoreAuthToken = (): string | null => {
+  const token = localStorage.getItem(TOKEN_KEY);
+  if (token) {
+    axios.defaults.headers.common["Authorization"] = `Bearer ${token}`;
+  }
+  return token;
+};
+
 export const loginUser = async (email: string, password: string) => {
   const res = await axios.post("/user/login", { email, password });
   if (res.status !== 200) {
     throw new Error("Unable to login");
   }
+  if (res.data.token) setAuthToken(res.data.token);
   return res.data;
 };
 
@@ -17,23 +41,31 @@ export const signupUser = async (
   if (res.status !== 201) {
     throw new Error("Unable to Signup");
   }
+  if (res.data.token) setAuthToken(res.data.token);
   return res.data;
 };
 
 export const checkAuthStatus = async () => {
-  const res = await axios.get("/user/auth-status");
-  if (res.status !== 200) {
-    throw new Error("Unable to authenticate");
+  const token = restoreAuthToken();
+  if (!token) return null;
+  try {
+    const res = await axios.get("/user/auth-status");
+    if (res.status !== 200) return null;
+    return res.data;
+  } catch {
+    clearAuthToken();
+    return null;
   }
-  return res.data;
 };
 
 export const logoutUser = async () => {
-  const res = await axios.get("/user/logout");
-  if (res.status !== 200) {
-    throw new Error("Unable to logout");
+  try {
+    await axios.get("/user/logout");
+  } catch {
+    // ignore logout errors
+  } finally {
+    clearAuthToken();
   }
-  return res.data;
 };
 
 // Chat Sessions and Threads
@@ -84,7 +116,6 @@ export const updateUserProfile = async (data: {
   currentPassword?: string;
   newPassword?: string;
 }) => {
-  // Let axios throw on non-2xx so the caller gets err.response.data
   const res = await axios.put("/user/update-profile", data);
   return res.data;
 };

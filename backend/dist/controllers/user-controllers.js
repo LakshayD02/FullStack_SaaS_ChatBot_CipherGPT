@@ -49,7 +49,7 @@ const userSignup = async (req, res, next) => {
         res.cookie(constants_1.COOKIE_NAME, token, { ...cookieOptions, expires });
         return res
             .status(201)
-            .json({ message: "OK", name: user.name, email: user.email });
+            .json({ message: "OK", name: user.name, email: user.email, token });
     }
     catch (error) {
         console.log(error);
@@ -77,7 +77,7 @@ const userLogin = async (req, res, next) => {
         res.cookie(constants_1.COOKIE_NAME, token, { ...cookieOptions, expires });
         return res
             .status(200)
-            .json({ message: "OK", name: user.name, email: user.email });
+            .json({ message: "OK", name: user.name, email: user.email, token });
     }
     catch (error) {
         console.log(error);
