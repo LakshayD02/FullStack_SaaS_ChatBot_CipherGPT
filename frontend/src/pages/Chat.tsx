@@ -300,7 +300,8 @@ const Chat = () => {
       }
     } catch (err: any) {
       if (err?.name !== "AbortError" && !controller.signal.aborted) {
-        toast.error("Unable to get response. Please try again.", { id: "senderr" });
+        const errorMsg = err.response?.data?.cause || err.response?.data?.message || err.message || "Unable to get response. Please try again.";
+        toast.error(errorMsg, { id: "senderr" });
         setChatMessages((prev) => prev.slice(0, -1));
       }
     } finally {
