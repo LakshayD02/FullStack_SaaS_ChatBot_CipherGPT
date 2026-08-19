@@ -5,6 +5,17 @@ import { createToken } from "../utils/token-manager";
 import { COOKIE_NAME } from "../utils/constants";
 import { sendMail } from "../utils/mail-sender";
 
+// Cookie options for production (cross-origin) vs development
+const isProduction = process.env.NODE_ENV === "production";
+const cookieOptions = {
+  path: "/",
+  httpOnly: true,
+  signed: true,
+  sameSite: (isProduction ? "none" : "lax") as "none" | "lax",
+  secure: isProduction,
+  ...(isProduction ? {} : { domain: "localhost" }),
+};
+
 export const getAllUsers = async (
   req: Request,
   res: Response,
@@ -35,23 +46,12 @@ export const userSignup = async (
     await user.save();
 
     // create token and store cookie
-    res.clearCookie(COOKIE_NAME, {
-      httpOnly: true,
-      domain: "localhost",
-      signed: true,
-      path: "/",
-    });
+    res.clearCookie(COOKIE_NAME, cookieOptions);
 
     const token = createToken(user._id.toString(), user.email, "7d");
     const expires = new Date();
     expires.setDate(expires.getDate() + 7);
-    res.cookie(COOKIE_NAME, token, {
-      path: "/",
-      domain: "localhost",
-      expires,
-      httpOnly: true,
-      signed: true,
-    });
+    res.cookie(COOKIE_NAME, token, { ...cookieOptions, expires });
 
     return res
       .status(201)
@@ -80,24 +80,12 @@ export const userLogin = async (
     }
 
     // create token and store cookie
-
-    res.clearCookie(COOKIE_NAME, {
-      httpOnly: true,
-      domain: "localhost",
-      signed: true,
-      path: "/",
-    });
+    res.clearCookie(COOKIE_NAME, cookieOptions);
 
     const token = createToken(user._id.toString(), user.email, "7d");
     const expires = new Date();
     expires.setDate(expires.getDate() + 7);
-    res.cookie(COOKIE_NAME, token, {
-      path: "/",
-      domain: "localhost",
-      expires,
-      httpOnly: true,
-      signed: true,
-    });
+    res.cookie(COOKIE_NAME, token, { ...cookieOptions, expires });
 
     return res
       .status(200)
@@ -146,12 +134,7 @@ export const userLogout = async (
       return res.status(401).send("Permissions didn't match");
     }
 
-    res.clearCookie(COOKIE_NAME, {
-      httpOnly: true,
-      domain: "localhost",
-      signed: true,
-      path: "/",
-    });
+    res.clearCookie(COOKIE_NAME, cookieOptions);
 
     return res
       .status(200)

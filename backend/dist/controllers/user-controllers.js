@@ -9,6 +9,16 @@ const bcrypt_1 = require("bcrypt");
 const token_manager_1 = require("../utils/token-manager");
 const constants_1 = require("../utils/constants");
 const mail_sender_1 = require("../utils/mail-sender");
+// Cookie options for production (cross-origin) vs development
+const isProduction = process.env.NODE_ENV === "production";
+const cookieOptions = {
+    path: "/",
+    httpOnly: true,
+    signed: true,
+    sameSite: (isProduction ? "none" : "lax"),
+    secure: isProduction,
+    ...(isProduction ? {} : { domain: "localhost" }),
+};
 const getAllUsers = async (req, res, next) => {
     try {
         //get all users
@@ -32,22 +42,11 @@ const userSignup = async (req, res, next) => {
         const user = new User_1.default({ name, email, password: hashedPassword });
         await user.save();
         // create token and store cookie
-        res.clearCookie(constants_1.COOKIE_NAME, {
-            httpOnly: true,
-            domain: "localhost",
-            signed: true,
-            path: "/",
-        });
+        res.clearCookie(constants_1.COOKIE_NAME, cookieOptions);
         const token = (0, token_manager_1.createToken)(user._id.toString(), user.email, "7d");
         const expires = new Date();
         expires.setDate(expires.getDate() + 7);
-        res.cookie(constants_1.COOKIE_NAME, token, {
-            path: "/",
-            domain: "localhost",
-            expires,
-            httpOnly: true,
-            signed: true,
-        });
+        res.cookie(constants_1.COOKIE_NAME, token, { ...cookieOptions, expires });
         return res
             .status(201)
             .json({ message: "OK", name: user.name, email: user.email });
@@ -71,22 +70,11 @@ const userLogin = async (req, res, next) => {
             return res.status(403).send("Incorrect Password");
         }
         // create token and store cookie
-        res.clearCookie(constants_1.COOKIE_NAME, {
-            httpOnly: true,
-            domain: "localhost",
-            signed: true,
-            path: "/",
-        });
+        res.clearCookie(constants_1.COOKIE_NAME, cookieOptions);
         const token = (0, token_manager_1.createToken)(user._id.toString(), user.email, "7d");
         const expires = new Date();
         expires.setDate(expires.getDate() + 7);
-        res.cookie(constants_1.COOKIE_NAME, token, {
-            path: "/",
-            domain: "localhost",
-            expires,
-            httpOnly: true,
-            signed: true,
-        });
+        res.cookie(constants_1.COOKIE_NAME, token, { ...cookieOptions, expires });
         return res
             .status(200)
             .json({ message: "OK", name: user.name, email: user.email });
@@ -127,12 +115,7 @@ const userLogout = async (req, res, next) => {
         if (user._id.toString() !== res.locals.jwtData.id) {
             return res.status(401).send("Permissions didn't match");
         }
-        res.clearCookie(constants_1.COOKIE_NAME, {
-            httpOnly: true,
-            domain: "localhost",
-            signed: true,
-            path: "/",
-        });
+        res.clearCookie(constants_1.COOKIE_NAME, cookieOptions);
         return res
             .status(200)
             .json({ message: "OK", name: user.name, email: user.email });
