@@ -1,0 +1,50 @@
+/* Login.css */
+
+.wallpaper {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    overflow: hidden;
+    z-index: 1; /* Ensure the wallpaper is behind the login form */
+    background: linear-gradient(135deg, #00042b, #00034d);
+    animation: animateWallpaper 30s linear infinite;
+  }
+  
+  .wallpaper span {
+    position: absolute;
+    display: block;
+    width: 10px;
+    height: 10px;
+    background: #181818;
+    opacity: 0.8;
+    animation: animateWallpaperSpan 3s linear infinite;
+  }
+  
+  @keyframes animateWallpaper {
+    0% {
+      background-position: 0% 0%;
+    }
+    50% {
+      background-position: 100% 100%;
+    }
+    100% {
+      background-position: 0% 0%;
+    }
+  }
+  
+  @keyframes animateWallpaperSpan {
+    0% {
+      transform: translateY(0) rotate(0deg);
+    }
+    100% {
+      transform: translateY(-100vh) rotate(720deg);
+    }
+  }
+  
+  .login-container {
+    position: relative;
+    z-index: 2; /* Ensure the login container is above the wallpaper */
+  }
+  
