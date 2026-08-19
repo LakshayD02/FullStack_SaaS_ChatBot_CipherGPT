@@ -10,7 +10,7 @@ const configureOpenAI = () => {
         apiKey: process.env.OPENROUTER_API_KEY,
         baseURL: "https://openrouter.ai/api/v1",
         defaultHeaders: {
-            "HTTP-Referer": "http://localhost:5000",
+            "HTTP-Referer": "https://ciphergpt-lakshay.vercel.app",
             "X-Title": "CipherGPT",
         },
     });

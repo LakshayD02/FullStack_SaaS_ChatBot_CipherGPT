@@ -49,7 +49,7 @@ export const generateChatCompletion = async (
     // Call OpenAI API via OpenRouter (using free router for auto-selection and failover)
     const openai = configureOpenAI();
     const chatResponse = await openai.chat.completions.create({
-      model: "openrouter/free",
+      model: "google/gemini-2.5-flash:free",
       messages: chats,
     });
 
