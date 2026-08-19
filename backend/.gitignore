@@ -1,9 +1,8 @@
 # Dependencies
 node_modules/
 
-# Compiled files
-dist/
-build/
+# Compiled files — dist/ is committed for Vercel deployment
+# build/
 
 # Local Environment Variables
 .env
