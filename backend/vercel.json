@@ -6,21 +6,16 @@
       "use": "@vercel/node"
     }
   ],
-  "headers": [
-    {
-      "source": "/(.*)",
-      "headers": [
-        { "key": "Access-Control-Allow-Origin", "value": "https://ciphergpt-lakshay.vercel.app" },
-        { "key": "Access-Control-Allow-Methods", "value": "GET, POST, PUT, DELETE, OPTIONS" },
-        { "key": "Access-Control-Allow-Headers", "value": "Content-Type, Authorization, Cookie, X-Requested-With" },
-        { "key": "Access-Control-Allow-Credentials", "value": "true" }
-      ]
-    }
-  ],
   "routes": [
     {
       "src": "/(.*)",
-      "dest": "dist/api.js"
+      "dest": "dist/api.js",
+      "headers": {
+        "Access-Control-Allow-Origin": "https://ciphergpt-lakshay.vercel.app",
+        "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, OPTIONS",
+        "Access-Control-Allow-Headers": "Content-Type, Authorization, Cookie, X-Requested-With",
+        "Access-Control-Allow-Credentials": "true"
+      }
     }
   ]
 }
