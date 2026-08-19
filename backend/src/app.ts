@@ -7,14 +7,42 @@ import cors from "cors";
 import helmet from "helmet";
 import rateLimit from "express-rate-limit";
 config();
+
 const app = express();
 
-// Security Headers
-app.use(helmet());
+// ─── CORS ─────────────────────────────────────────────────────────────────────
+// Must be FIRST — before helmet, body parser, and all routes
+const allowedOrigins = [
+  "http://localhost:5173",
+  "http://localhost:5000",
+  "https://ciphergpt-lakshay.vercel.app", // production frontend
+  ...(process.env.FRONTEND_URL ? [process.env.FRONTEND_URL] : []),
+];
 
-// Rate Limiter: limit requests from same IP to 150 per 15 mins
+const corsOptions: cors.CorsOptions = {
+  origin: (origin, callback) => {
+    // Allow requests with no origin (Postman, curl, mobile apps)
+    if (!origin) return callback(null, true);
+    if (allowedOrigins.includes(origin)) {
+      return callback(null, true);
+    }
+    return callback(new Error(`CORS blocked: ${origin}`));
+  },
+  credentials: true,
+  methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+  allowedHeaders: ["Content-Type", "Authorization", "Cookie"],
+};
+
+// Handle preflight OPTIONS requests for ALL routes explicitly
+app.options("*", cors(corsOptions));
+app.use(cors(corsOptions));
+
+// ─── Security & Middleware ─────────────────────────────────────────────────────
+app.use(helmet({ crossOriginResourcePolicy: { policy: "cross-origin" } }));
+
+// Rate Limiter: 150 requests per 15 minutes per IP
 const limiter = rateLimit({
-  windowMs: 15 * 60 * 1000, // 15 minutes
+  windowMs: 15 * 60 * 1000,
   max: 150,
   message: "Too many requests from this IP, please try again after 15 minutes",
   standardHeaders: true,
@@ -22,31 +50,11 @@ const limiter = rateLimit({
 });
 app.use("/api/", limiter);
 
-// Dynamic CORS configurations
-const allowedOrigins = [
-  "http://localhost:5173",
-  "http://localhost:5000",
-  ...(process.env.FRONTEND_URL ? [process.env.FRONTEND_URL] : []),
-];
-app.use(
-  cors({
-    origin: (origin, callback) => {
-      // Allow requests with no origin (like mobile apps or curl requests)
-      if (!origin) return callback(null, true);
-      if (allowedOrigins.indexOf(origin) !== -1) {
-        return callback(null, true);
-      }
-      return callback(new Error("Not allowed by CORS"));
-    },
-    credentials: true,
-  })
-);
 app.use(express.json());
 app.use(cookieParser(process.env.COOKIE_SECRET));
-
-//remove it in production
 app.use(morgan("dev"));
 
+// ─── Routes ───────────────────────────────────────────────────────────────────
 app.use("/api/v1", appRouter);
 
 // 404 — unknown API routes
@@ -54,7 +62,7 @@ app.use((_req, res) => {
   res.status(404).json({ message: "Route not found" });
 });
 
-// 500 — global error handler (prevents stack trace leakage to clients)
+// 500 — global error handler
 app.use((err: any, _req: any, res: any, _next: any) => {
   const status = err.status || 500;
   const message =
