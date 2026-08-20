@@ -59,6 +59,18 @@ app.use(express.json());
 app.use(cookieParser(process.env.COOKIE_SECRET));
 app.use(morgan("dev"));
 
+// Ensure MongoDB is connected for every request (critical for serverless cold-starts)
+app.use(async (_req: Request, res: Response, next: NextFunction) => {
+  try {
+    const { connectToDatabase } = await import("./db/connection");
+    await connectToDatabase();
+    next();
+  } catch (err: any) {
+    console.error("DB connection error in middleware:", err);
+    return res.status(500).json({ message: "Database Connection Error", cause: err?.message || String(err) });
+  }
+});
+
 // ─── Routes ───────────────────────────────────────────────────────────────────
 app.use("/api/v1", appRouter);
 
