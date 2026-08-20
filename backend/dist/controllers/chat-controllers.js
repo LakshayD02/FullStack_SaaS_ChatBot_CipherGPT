@@ -43,7 +43,7 @@ const generateChatCompletion = async (req, res, next) => {
         // Call OpenAI API via OpenRouter (using free router for auto-selection and failover)
         const openai = (0, openai_config_1.configureOpenAI)();
         const chatResponse = await openai.chat.completions.create({
-            model: "deepseek/deepseek-chat:free",
+            model: "nvidia/nemotron-3-nano-omni-30b-a3b-reasoning:free",
             messages: chats,
         });
         const assistantMessage = chatResponse.choices?.[0]?.message;
