@@ -30,7 +30,7 @@ app.use((req, res, next) => {
     }
     res.setHeader("Access-Control-Allow-Credentials", "true");
     res.setHeader("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS, PATCH");
-    res.setHeader("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept, Authorization, Cookie");
+    res.setHeader("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept, Authorization, Cookie, x-auth-token");
     // Respond immediately to preflight OPTIONS — must be 204
     if (req.method === "OPTIONS") {
         return res.sendStatus(204);

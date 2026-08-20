@@ -28,14 +28,14 @@ export const restoreAuthToken = (): string | null => {
 restoreAuthToken();
 
 // ─── Axios request interceptor (safety net) ────────────────────────────────
-// Re-reads localStorage before every request so the header is always present
-// even if in-memory axios defaults were somehow lost (e.g. HMR, strict mode).
+// Sends the token in BOTH headers on every request.
+// x-auth-token is a custom header that survives Vercel's proxy/CDN layer
+// even in cases where the standard Authorization header gets stripped.
 axios.interceptors.request.use((config) => {
-  if (!config.headers["Authorization"]) {
-    const token = localStorage.getItem(TOKEN_KEY);
-    if (token) {
-      config.headers["Authorization"] = `Bearer ${token}`;
-    }
+  const token = localStorage.getItem(TOKEN_KEY);
+  if (token) {
+    config.headers["Authorization"] = `Bearer ${token}`;
+    config.headers["x-auth-token"] = token;
   }
   return config;
 });
