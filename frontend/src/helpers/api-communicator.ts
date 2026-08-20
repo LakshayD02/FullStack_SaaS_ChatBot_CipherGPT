@@ -52,8 +52,15 @@ export const checkAuthStatus = async () => {
     const res = await axios.get("/user/auth-status");
     if (res.status !== 200) return null;
     return res.data;
-  } catch {
-    clearAuthToken();
+  } catch (err: any) {
+    // Only clear token if backend explicitly rejects it (401 = expired/invalid).
+    // Network errors, 5xx, or timeouts should NOT wipe the stored token —
+    // doing so would log the user out on every page refresh if the backend
+    // is temporarily unreachable.
+    const status = err?.response?.status;
+    if (status === 401) {
+      clearAuthToken();
+    }
     return null;
   }
 };
