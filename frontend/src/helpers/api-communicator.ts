@@ -2,19 +2,18 @@ import axios from "axios";
 
 const TOKEN_KEY = "ciphergpt_token";
 
-// Save token to localStorage and set default axios header
+// ─── Token Helpers ─────────────────────────────────────────────────────────
+
 export const setAuthToken = (token: string) => {
   localStorage.setItem(TOKEN_KEY, token);
   axios.defaults.headers.common["Authorization"] = `Bearer ${token}`;
 };
 
-// Clear token from localStorage and axios headers
 export const clearAuthToken = () => {
   localStorage.removeItem(TOKEN_KEY);
   delete axios.defaults.headers.common["Authorization"];
 };
 
-// Restore token from localStorage on page load
 export const restoreAuthToken = (): string | null => {
   const token = localStorage.getItem(TOKEN_KEY);
   if (token) {
@@ -23,24 +22,36 @@ export const restoreAuthToken = (): string | null => {
   return token;
 };
 
+// ─── Run immediately on import (synchronous) ───────────────────────────────
+// Guarantees the Authorization header is set BEFORE any component renders
+// or makes an API call, eliminating race conditions with useLayoutEffect.
+restoreAuthToken();
+
+// ─── Axios request interceptor (safety net) ────────────────────────────────
+// Re-reads localStorage before every request so the header is always present
+// even if in-memory axios defaults were somehow lost (e.g. HMR, strict mode).
+axios.interceptors.request.use((config) => {
+  if (!config.headers["Authorization"]) {
+    const token = localStorage.getItem(TOKEN_KEY);
+    if (token) {
+      config.headers["Authorization"] = `Bearer ${token}`;
+    }
+  }
+  return config;
+});
+
+// ─── Auth ──────────────────────────────────────────────────────────────────
+
 export const loginUser = async (email: string, password: string) => {
   const res = await axios.post("/user/login", { email, password });
-  if (res.status !== 200) {
-    throw new Error("Unable to login");
-  }
+  if (res.status !== 200) throw new Error("Unable to login");
   if (res.data.token) setAuthToken(res.data.token);
   return res.data;
 };
 
-export const signupUser = async (
-  name: string,
-  email: string,
-  password: string
-) => {
+export const signupUser = async (name: string, email: string, password: string) => {
   const res = await axios.post("/user/signup", { name, email, password });
-  if (res.status !== 201) {
-    throw new Error("Unable to Signup");
-  }
+  if (res.status !== 201) throw new Error("Unable to Signup");
   if (res.data.token) setAuthToken(res.data.token);
   return res.data;
 };
@@ -53,12 +64,10 @@ export const checkAuthStatus = async () => {
     if (res.status !== 200) return null;
     return res.data;
   } catch (err: any) {
-    // Only clear token if backend explicitly rejects it (401 = expired/invalid).
-    // Network errors, 5xx, or timeouts should NOT wipe the stored token —
-    // doing so would log the user out on every page refresh if the backend
-    // is temporarily unreachable.
-    const status = err?.response?.status;
-    if (status === 401) {
+    // Only clear token if the backend explicitly rejects it (401 = expired/invalid).
+    // Network errors, 5xx, or timeouts must NOT wipe the stored token —
+    // that would log the user out on every refresh when the backend is slow.
+    if (err?.response?.status === 401) {
       clearAuthToken();
     }
     return null;
@@ -75,48 +84,40 @@ export const logoutUser = async () => {
   }
 };
 
-// Chat Sessions and Threads
+// ─── Chat Sessions and Threads ─────────────────────────────────────────────
+
 export const sendChatRequest = async (message: string, threadId?: string, signal?: AbortSignal) => {
   const res = await axios.post("/chat/new", { message, threadId }, { signal });
-  if (res.status !== 200) {
-    throw new Error("Unable to send chat");
-  }
+  if (res.status !== 200) throw new Error("Unable to send chat");
   return res.data;
 };
 
 export const getUserChats = async () => {
   const res = await axios.get("/chat/all-chats");
-  if (res.status !== 200) {
-    throw new Error("Unable to fetch chats");
-  }
+  if (res.status !== 200) throw new Error("Unable to fetch chats");
   return res.data;
 };
 
 export const getThreadMessages = async (threadId: string) => {
   const res = await axios.get(`/chat/thread/${threadId}`);
-  if (res.status !== 200) {
-    throw new Error("Unable to fetch thread messages");
-  }
+  if (res.status !== 200) throw new Error("Unable to fetch thread messages");
   return res.data;
 };
 
 export const deleteUserThread = async (threadId: string) => {
   const res = await axios.delete(`/chat/thread/${threadId}`);
-  if (res.status !== 200) {
-    throw new Error("Unable to delete thread");
-  }
+  if (res.status !== 200) throw new Error("Unable to delete thread");
   return res.data;
 };
 
 export const deleteUserChats = async () => {
   const res = await axios.delete("/chat/delete");
-  if (res.status !== 200) {
-    throw new Error("Unable to delete chats");
-  }
+  if (res.status !== 200) throw new Error("Unable to delete chats");
   return res.data;
 };
 
-// Profile & Forgot Password
+// ─── Profile & Forgot Password ─────────────────────────────────────────────
+
 export const updateUserProfile = async (data: {
   name?: string;
   email?: string;
@@ -129,9 +130,7 @@ export const updateUserProfile = async (data: {
 
 export const requestPasswordOTP = async (email: string) => {
   const res = await axios.post("/user/send-otp", { email });
-  if (res.status !== 200) {
-    throw new Error("Unable to send OTP");
-  }
+  if (res.status !== 200) throw new Error("Unable to send OTP");
   return res.data;
 };
 
@@ -141,8 +140,6 @@ export const resetPassword = async (data: {
   newPassword?: string;
 }) => {
   const res = await axios.post("/user/reset-password", data);
-  if (res.status !== 200) {
-    throw new Error("Unable to reset password");
-  }
+  if (res.status !== 200) throw new Error("Unable to reset password");
   return res.data;
 };
