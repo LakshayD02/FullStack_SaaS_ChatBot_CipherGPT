@@ -42,8 +42,8 @@ Because Vercel is built for serverless hosting and limits execution times (ideal
    - `COOKIE_SECRET`: `2644b8ad7...`
    - `SMTP_HOST`: `smtp.gmail.com`
    - `SMTP_PORT`: `587`
-   - `SMTP_USER`: `lakshaydhoundiyal04@gmail.com`
-   - `SMTP_PASS`: `whrr oboe cfxc jbjm`
+   - `SMTP_USER`: `yourgmail@gmail.com`
+   - `SMTP_PASS`: `password`
    - `SMTP_SECURE`: `false`
 6. Click **Create Web Service**. Render will build and deploy the server.
 7. Copy the generated URL of your backend (e.g., `https://ciphergpt-backend.onrender.com`).
