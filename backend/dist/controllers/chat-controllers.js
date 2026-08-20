@@ -42,11 +42,11 @@ const generateChatCompletion = async (req, res, next) => {
         thread.messages.push({ content: message, role: "user" });
         // Free model fallback chain — tries each model in order until one succeeds
         const FREE_MODELS = [
+            "nvidia/nemotron-3-ultra-550b-a55b:free",
             "deepseek/deepseek-chat:free",
             "meta-llama/llama-3.1-8b-instruct:free",
             "google/gemma-3-27b-it:free",
             "mistralai/mistral-7b-instruct:free",
-            "qwen/qwen3-235b-a22b:free",
         ];
         const openai = (0, openai_config_1.configureOpenAI)();
         let chatResponse = null;
