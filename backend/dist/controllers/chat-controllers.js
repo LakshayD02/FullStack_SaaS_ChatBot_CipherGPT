@@ -40,16 +40,39 @@ const generateChatCompletion = async (req, res, next) => {
         // Add new user message to local array and the database document
         chats.push({ content: message, role: "user" });
         thread.messages.push({ content: message, role: "user" });
-        // Call OpenAI API via OpenRouter (using free router for auto-selection and failover)
+        // Free model fallback chain — tries each model in order until one succeeds
+        const FREE_MODELS = [
+            "deepseek/deepseek-chat:free",
+            "meta-llama/llama-3.1-8b-instruct:free",
+            "google/gemma-3-27b-it:free",
+            "mistralai/mistral-7b-instruct:free",
+            "qwen/qwen3-235b-a22b:free",
+        ];
         const openai = (0, openai_config_1.configureOpenAI)();
-        const chatResponse = await openai.chat.completions.create({
-            model: "nvidia/nemotron-3-nano-omni-30b-a3b-reasoning:free",
-            messages: chats,
-        });
-        const assistantMessage = chatResponse.choices?.[0]?.message;
+        let chatResponse = null;
+        let lastError = "";
+        for (const model of FREE_MODELS) {
+            try {
+                chatResponse = await openai.chat.completions.create({ model, messages: chats });
+                if (chatResponse.choices?.[0]?.message) {
+                    console.log(`[OpenRouter] Succeeded with model: ${model}`);
+                    break; // success — stop trying
+                }
+                // API returned but no valid choice — treat as failure
+                const errMsg = chatResponse.error?.message || "Empty response";
+                console.warn(`[OpenRouter] Model ${model} returned no choices: ${errMsg}`);
+                lastError = errMsg;
+                chatResponse = null;
+            }
+            catch (err) {
+                const errMsg = err?.message || String(err);
+                console.warn(`[OpenRouter] Model ${model} failed: ${errMsg}`);
+                lastError = errMsg;
+            }
+        }
+        const assistantMessage = chatResponse?.choices?.[0]?.message;
         if (!assistantMessage) {
-            console.error("[OpenRouter Error Response]:", JSON.stringify(chatResponse, null, 2));
-            throw new Error(chatResponse.error?.message || "Model API returned an invalid response structure.");
+            throw new Error(`All free models failed. Last error: ${lastError}`);
         }
         thread.messages.push({
             role: assistantMessage.role,
